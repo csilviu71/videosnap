@@ -3,13 +3,11 @@
 VideoSnap is an OSX command line tool for recording video and audio from any
 attached QuickTime capture device.
 
-You can specify which device to capture from, the duration, size/quality, a
-delay period (before capturing starts) and optionally turn off audio capturing.
+See the argument list below for all available options. By default videosnap will
+capture and encode using the H.264(SD480)/AAC format to 'movie.mov'. If you do
+not specify a duration, capturing will continue until you interrupt with CTRL+c.
 
-The only _required_ argument is a file path. By default VideoSnap will capture 6
-seconds of video and audio from the default capture device in H.264(SD480)/AAC
-encoding to 'movie.mov'. You can also use VideoSnap to list attached QuickTime
-capture devices by name.
+You can also use VideoSnap to list attached QuickTime capture devices by name.
 
 This command was inspired by [ImageSnap](https://github.com/rharder/imagesnap)
 from [@rharder](https://github.com/rharder), and driven by problems with the
@@ -22,8 +20,8 @@ The following options are available:
 
 ```
   -l    List attached QuickTime capture devices
-  -t    Set duration of video (in seconds, default 6s)
-  -w    Set delay before capturing starts (in seconds, default 0.5s)
+  -t    Set duration of video (in seconds)
+  -w    Set delay before capturing starts (in seconds)
   -d    Set the capture device by name (use -l to list attached devices)
   -s    Set the H.264 video size/quality (use 120, 240, SD480 (default) HD720)
   -v    Turn ON verbose mode (OFF by default)
@@ -49,8 +47,8 @@ Capture 1 minute of SD480 video (default), but no audio from the
 
 ## Warming Up
 
-Since some QT cameras can take a while to _warm up_ a default delay of 
-0.5 secs has been chosen. You can override this by setting the `-w` 
+Since some QT cameras can take a while to _warm up_ a default delay of
+0.5 secs has been chosen. You can override this by setting the `-w`
 argument with any number of seconds (0 would be no delay).
 
 ## Compatibility

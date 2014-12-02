@@ -16,14 +16,13 @@
 .Op file ...
 .Sh DESCRIPTION          \" Section Header - required - don't modify
 .Nm
-is an OSX command line tool for recording video and audio
-from any attached QuickTime capture device.
+is an OSX command line tool for recording video and audio from any attached
+QuickTime capture device.
 .Pp
-You can specify which device to capture from, the duration,
-size/quality, a delay period (before capturing starts) and optionally
-turn off audio capturing.  The only required argument is a file path.
-By default videosnap will capture 6 seconds of video and audio from the
-default capture device in H.264(SD480)/AAC encoding to 'movie.mov'.
+See the argument list below for all available options. By default videosnap
+will capture and encode using the H.264(SD480)/AAC format to 'movie.mov'. If
+you do not specify a duration, capturing will continue until you interrupt with
+CTRL+c.
 .Pp
 You can also use
 .Nm
@@ -34,17 +33,15 @@ The following options are available:
 .It Fl l
 List attached QuickTime capture devices
 .It Fl t
-Set duration of video (in seconds, default 6s)
+Set duration of video (in seconds)
 .It Fl w
-Set delay before capturing starts (in seconds, default 0s)
+Set delay before capturing starts (in seconds)
 .It Fl d
 Set the capture device by name (use -l to list attached devices)
 .It Fl s
 Set the H.264 video size/quality (use 120, 240, SD480 (default) or HD720)
 .It Fl -no-audio
-Don't capture audio (audio
-.Ar IS
-captured by default)
+Disable audio capturing
 .It Fl v
 Turn ON verbose mode (OFF by default)
 .It Fl h
