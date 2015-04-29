@@ -21,20 +21,20 @@
  */
 + (NSArray *)videoDevices {
 	NSMutableArray *devices = [NSMutableArray arrayWithCapacity:3];
-	[devices addObjectsFromArray:[QTCaptureDevice inputDevicesWithMediaType:QTMediaTypeVideo]];
-	[devices addObjectsFromArray:[QTCaptureDevice inputDevicesWithMediaType:QTMediaTypeMuxed]];
+	[devices addObjectsFromArray:[AVCaptureDevice devicesWithMediaType:AVMediaTypeVideo]];
+	[devices addObjectsFromArray:[AVCaptureDevice devicesWithMediaType:AVMediaTypeMuxed]];
 
 	return devices;
 }
 
 
 /**
- * returns the default QTCaptureDevice or nil
+ * returns the default device or nil
  */
-+ (QTCaptureDevice *)defaultDevice {
-	QTCaptureDevice *device = [QTCaptureDevice defaultInputDeviceWithMediaType:QTMediaTypeVideo];
++ (AVCaptureDevice *)defaultDevice {
+	AVCaptureDevice *device = [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeVideo];
 	if (!device) {
-		device = [QTCaptureDevice defaultInputDeviceWithMediaType:QTMediaTypeMuxed];
+		device = [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeMuxed];
 	}
 
 	return device;
@@ -42,12 +42,12 @@
 
 
 /**
- * returns a QTCaptureDevice matching the name or nil
+ * returns a device matching the name or nil
  */
-+ (QTCaptureDevice *)deviceNamed:(NSString *)name {
-	QTCaptureDevice *device = nil;
++ (AVCaptureDevice *)deviceNamed:(NSString *)name {
+	AVCaptureDevice *device = nil;
 	NSArray *devices = [VideoSnap videoDevices];
-	for (QTCaptureDevice *thisDevice in devices) {
+	for (AVCaptureDevice *thisDevice in devices) {
 		if ([name isEqualToString:[thisDevice description]]) {
 			device = thisDevice;
 		}
@@ -60,7 +60,7 @@
 /**
  * start a capture session on a device, saving to filePath for recordingDuration
  */
-- (BOOL)prepareCapture:(QTCaptureDevice *)videoDevice
+- (BOOL)prepareCapture:(AVCaptureDevice *)videoDevice
 					  	filePath:(NSString *)filePath
 	   recordingDuration:(NSNumber *)recordingDuration
 	  				 videoSize:(NSString *)videoSize
@@ -68,54 +68,53 @@
 	  					 noAudio:(BOOL)noAudio {
 
 	BOOL success = NO;
-	NSError *nserror;
 
-	captureSession      = [[QTCaptureSession alloc] init];
-	maxRecordingSeconds = recordingDuration;
-
-	// add video device
-	if ([self addVideoDevice:videoDevice]) {
-
-		// add audio device
-		if (!noAudio) {
-			[self addAudioDevice:videoDevice];
-		}
-
-		// create the movie file output and add to session
-		captureMovieFileOutput = [[QTCaptureMovieFileOutput alloc] init];
-		success = [captureSession addOutput:captureMovieFileOutput error:&nserror];
-		if (!success) {
-			error("Could not add file '%s' as output to the capture session\n", [filePath UTF8String]);
-			return success;
-		} else {
-			[captureMovieFileOutput setDelegate:self];
-		}
-
-		// set compression
-		NSString *videoCompression = [NSString stringWithFormat:@"QTCompressionOptions%@SizeH264Video", videoSize];
-		[self setCompressionOptions:videoCompression audioCompression:@"QTCompressionOptionsHighQualityAACAudio"];
-
-		if (is_interrupted) {
-			verbose("(nothing captured)\n");
-			return YES;
-		}
-
-		
-		// start capture session running
-		verbose("(starting capture session)\n");
-		[captureSession startRunning];
-		success = [captureSession isRunning];
-
-
-		if (success) {
-			if (delaySeconds) {
-				[self sleep:[delaySeconds doubleValue]];
-			}
-			[self startCapture:filePath];
-		} else {
-			error("Could not start the capture session\n");
-		}
-	}
+//	NSError *nserror;
+//
+//	captureSession      = [[QTCaptureSession alloc] init];
+//	maxRecordingSeconds = recordingDuration;
+//
+//	// add video device
+//	if ([self addVideoDevice:videoDevice]) {
+//
+//		// add audio device
+//		if (!noAudio) {
+//			[self addAudioDevice:videoDevice];
+//		}
+//
+//		// create the movie file output and add to session
+//		captureMovieFileOutput = [[QTCaptureMovieFileOutput alloc] init];
+//		success = [captureSession addOutput:captureMovieFileOutput error:&nserror];
+//		if (!success) {
+//			error("Could not add file '%s' as output to the capture session\n", [filePath UTF8String]);
+//			return success;
+//		} else {
+//			[captureMovieFileOutput setDelegate:self];
+//		}
+//
+//		// set compression
+//		NSString *videoCompression = [NSString stringWithFormat:@"QTCompressionOptions%@SizeH264Video", videoSize];
+//		[self setCompressionOptions:videoCompression audioCompression:@"QTCompressionOptionsHighQualityAACAudio"];
+//
+//		if (is_interrupted) {
+//			verbose("(nothing captured)\n");
+//			return YES;
+//		}
+//		
+//		// start capture session running
+//		verbose("(starting capture session)\n");
+//		[captureSession startRunning];
+//		success = [captureSession isRunning];
+//
+//		if (success) {
+//			if (delaySeconds) {
+//				[self sleep:[delaySeconds doubleValue]];
+//			}
+//			[self startCapture:filePath];
+//		} else {
+//			error("Could not start the capture session\n");
+//		}
+//	}
 
 	return success;
 }
@@ -136,26 +135,26 @@
 /**
  * add video device to a capture session
  */
-- (BOOL)addVideoDevice:(QTCaptureDevice *)videoDevice {
+- (BOOL)addVideoDevice:(AVCaptureDevice *)videoDevice {
 
 	BOOL success = NO;
-	NSError *nserror;
-
-	// attempt to open the device for capturing
-	success = [videoDevice open:&nserror];
-	if (!success) {
-		error("Could not open the video device\n");
-		return success;
-	}
-
-	// add the video device to the capture session as a device input
-	verbose("(adding video device to capture session)\n");
-	captureVideoDeviceInput = [[QTCaptureDeviceInput alloc] initWithDevice:videoDevice];
-	success = [captureSession addInput:captureVideoDeviceInput error:&nserror];
-	if (!success) {
-		error("Could not add the video device to the session\n");
-		return success;
-	}
+//	NSError *nserror;
+//
+//	// attempt to open the device for capturing
+//	success = [videoDevice open:&nserror];
+//	if (!success) {
+//		error("Could not open the video device\n");
+//		return success;
+//	}
+//
+//	// add the video device to the capture session as a device input
+//	verbose("(adding video device to capture session)\n");
+//	captureVideoDeviceInput = [[QTCaptureDeviceInput alloc] initWithDevice:videoDevice];
+//	success = [captureSession addInput:captureVideoDeviceInput error:&nserror];
+//	if (!success) {
+//		error("Could not add the video device to the session\n");
+//		return success;
+//	}
 
 	return success;
 }
@@ -164,32 +163,32 @@
 /**
  * add audio device to a capture session
  */
-- (BOOL)addAudioDevice:(QTCaptureDevice *)videoDevice {
+- (BOOL)addAudioDevice:(AVCaptureDevice *)videoDevice {
 
-	BOOL success = NO;
-	NSError *nserror;
-
-	verbose("(adding audio device to capture session)\n");
+//	BOOL success = NO;
+//	NSError *nserror;
+//
+//	verbose("(adding audio device to capture session)\n");
 	// if the video device doesn't supply audio, add an audio device input to the session
-	if (![videoDevice hasMediaType:QTMediaTypeSound] && ![videoDevice hasMediaType:QTMediaTypeMuxed]) {
-		QTCaptureDevice *audioDevice = [QTCaptureDevice defaultInputDeviceWithMediaType:QTMediaTypeSound];
-		success = [audioDevice open:&nserror];
-
-		if (!success) {
-			audioDevice = nil;
-			error("Could not open the audio device\n");
-			return success;
-		}
-
-		if (audioDevice) {
-			captureAudioDeviceInput = [[QTCaptureDeviceInput alloc] initWithDevice:audioDevice];
-			success = [captureSession addInput:captureAudioDeviceInput error:&nserror];
-			if (!success) {
-				error("Could not add the audio device to the session\n");
-				return success;
-			}
-		}
-	}
+//	if (![videoDevice hasMediaType:QTMediaTypeSound] && ![videoDevice hasMediaType:QTMediaTypeMuxed]) {
+//		QTCaptureDevice *audioDevice = [QTCaptureDevice defaultInputDeviceWithMediaType:QTMediaTypeSound];
+//		success = [audioDevice open:&nserror];
+//
+//		if (!success) {
+//			audioDevice = nil;
+//			error("Could not open the audio device\n");
+//			return success;
+//		}
+//
+//		if (audioDevice) {
+//			captureAudioDeviceInput = [[QTCaptureDeviceInput alloc] initWithDevice:audioDevice];
+//			success = [captureSession addInput:captureAudioDeviceInput error:&nserror];
+//			if (!success) {
+//				error("Could not add the audio device to the session\n");
+//				return success;
+//			}
+//		}
+//	}
 	return YES;
 }
 
@@ -200,84 +199,62 @@
 - (void)setCompressionOptions:(NSString *)videoCompression
 						 audioCompression:(NSString *)audioCompression {
 
-	NSEnumerator *connectionEnumerator = [[captureMovieFileOutput connections] objectEnumerator];
-	QTCaptureConnection *connection;
-
-	// iterate over each output connection for the capture session and specify the desired compression
-	while ((connection = [connectionEnumerator nextObject])) {
-		NSString *mediaType = [connection mediaType];
-		QTCompressionOptions *compressionOptions = nil;
-		// (see all valid compression types in QTCompressionOptions.h)
-		if ([mediaType isEqualToString:QTMediaTypeVideo]) {
-			verbose("(setting video compression to %s)\n", [videoCompression UTF8String]);
-			compressionOptions = [QTCompressionOptions compressionOptionsWithIdentifier:videoCompression];
-		} else if ([mediaType isEqualToString:QTMediaTypeSound]) {
-			verbose("(setting audio compression to %s)\n", [audioCompression UTF8String]);
-			compressionOptions = [QTCompressionOptions compressionOptionsWithIdentifier:audioCompression];
-		}
-
-		// set the compression options for the movie file output
-		[captureMovieFileOutput setCompressionOptions:compressionOptions forConnection:connection];
-	}
+//	NSEnumerator *connectionEnumerator = [[captureMovieFileOutput connections] objectEnumerator];
+//	QTCaptureConnection *connection;
+//
+//	// iterate over each output connection for the capture session and specify the desired compression
+//	while ((connection = [connectionEnumerator nextObject])) {
+//		NSString *mediaType = [connection mediaType];
+//		QTCompressionOptions *compressionOptions = nil;
+//		// (see all valid compression types in QTCompressionOptions.h)
+//		if ([mediaType isEqualToString:QTMediaTypeVideo]) {
+//			verbose("(setting video compression to %s)\n", [videoCompression UTF8String]);
+//			compressionOptions = [QTCompressionOptions compressionOptionsWithIdentifier:videoCompression];
+//		} else if ([mediaType isEqualToString:QTMediaTypeSound]) {
+//			verbose("(setting audio compression to %s)\n", [audioCompression UTF8String]);
+//			compressionOptions = [QTCompressionOptions compressionOptionsWithIdentifier:audioCompression];
+//		}
+//
+//		// set the compression options for the movie file output
+//		[captureMovieFileOutput setCompressionOptions:compressionOptions forConnection:connection];
+//	}
 }
 
 
 /**
  * delegate called when camera samples the output buffer
  */
-- (void)captureOutput:(QTCaptureFileOutput *)captureOutput
-didOutputSampleBuffer:(QTSampleBuffer *)sampleBuffer
-			 fromConnection:(QTCaptureConnection *)connection {
+//- (void)captureOutput:(QTCaptureFileOutput *)captureOutput
+//didOutputSampleBuffer:(QTSampleBuffer *)sampleBuffer
+//			 fromConnection:(QTCaptureConnection *)connection {
+//
+//	if (is_interrupted) {
+//		[self stopCapture];
+//	}
+//
+//	// check we have started to record some bytes
+//	long recordedBytes = [captureMovieFileOutput recordedFileSize];
+//	if (recordedBytes > 0) {
+//		
+//		if (!recordingStartedDate) {
+//  		recordingStartedDate = [[NSDate alloc] init];
+//
+//			if (maxRecordingSeconds && !recordingTimer) {
+//				console("Started capture...\n");
+//				[self startRecordingTimer:[maxRecordingSeconds doubleValue]];
+//			} else {
+//				console("Started capture (ctrl+c to stop)...\n");
+//			}
+//		}
+//	}
+//}
 
-	if (is_interrupted) {
-		[self stopCapture];
-	}
-
-	// check we have started to record some bytes
-	long recordedBytes = [captureMovieFileOutput recordedFileSize];
-	if (recordedBytes > 0) {
-		
-		if (!recordingStartedDate) {
-  		recordingStartedDate = [[NSDate alloc] init];
-
-			if (maxRecordingSeconds && !recordingTimer) {
-				console("Started capture...\n");
-				[self startRecordingTimer:[maxRecordingSeconds doubleValue]];
-			} else {
-				console("Started capture (ctrl+c to stop)...\n");
-			}
-		}
-	}
-}
-
-/**
- * starts a timer for the recording
- */
-- (void)startRecordingTimer:(double)recordingSeconds {
-	verbose("(starting recording timer)\n");
-	recordingTimer = [NSTimer timerWithTimeInterval:recordingSeconds
-																					 target:self
-																				 selector:@selector(checkRecordingTimer:)
-																				 userInfo:nil
-																					repeats:NO];
-
-	[runLoop addTimer:recordingTimer forMode: NSDefaultRunLoopMode];
-}
-
-
-/**
- * called when the recording timer finishes
- */
-- (void)checkRecordingTimer:(NSTimer *)aTimer {
-	verbose("(recording timer finished!)\n");
-	[self stopCapture];
-}
 
 /**
  * start the capture to the output file
  */
 - (void)startCapture:(NSString *)filePath {
-	[captureMovieFileOutput recordToOutputFileURL: [NSURL fileURLWithPath:filePath]];
+//	[captureMovieFileOutput recordToOutputFileURL: [NSURL fileURLWithPath:filePath]];
 	[runLoop run];
 }
 
@@ -285,29 +262,29 @@ didOutputSampleBuffer:(QTSampleBuffer *)sampleBuffer
  * stops the capture and writes to the output file
  */
 - (void)stopCapture {
-	[captureMovieFileOutput recordToOutputFileURL:nil];
+//	[captureMovieFileOutput recordToOutputFileURL:nil];
 }
 
 
 /**
  * delegate called when output file has been written to
  */
-- (void)captureOutput:(QTCaptureFileOutput *)captureOutput
-didFinishRecordingToOutputFileAtURL:(NSURL *)outputFileURL
-			 forConnections:(NSArray *)connections
-					 dueToError:(NSError *)error {
-
-	if (!error) {
-		verbose("(finished writing to file)\n");
-		NSString *outputDuration = QTStringFromTime([captureMovieFileOutput recordedDuration]);
-		console("Captured %s of video to '%s'\n", [outputDuration UTF8String], [[outputFileURL lastPathComponent] UTF8String]);
-	} else {
-		error("Could not finalize writing video to file\n");
-		fprintf(stderr, "%s\n", [[error localizedDescription] UTF8String]);
-	}
-
-	[self finishCapture];
-}
+//- (void)captureOutput:(QTCaptureFileOutput *)captureOutput
+//didFinishRecordingToOutputFileAtURL:(NSURL *)outputFileURL
+//			 forConnections:(NSArray *)connections
+//					 dueToError:(NSError *)error {
+//
+//	if (!error) {
+//		verbose("(finished writing to file)\n");
+//		NSString *outputDuration = QTStringFromTime([captureMovieFileOutput recordedDuration]);
+//		console("Captured %s of video to '%s'\n", [outputDuration UTF8String], [[outputFileURL lastPathComponent] UTF8String]);
+//	} else {
+//		error("Could not finalize writing video to file\n");
+//		fprintf(stderr, "%s\n", [[error localizedDescription] UTF8String]);
+//	}
+//
+//	[self finishCapture];
+//}
 
 
 /**
@@ -315,20 +292,20 @@ didFinishRecordingToOutputFileAtURL:(NSURL *)outputFileURL
  */
 -(void)finishCapture {
 
-	if ([captureSession isRunning]) {
-		verbose("(stopping capture session)\n");
-		[captureSession stopRunning];
-	}
-
-	if ([[captureVideoDeviceInput device] isOpen]) {
-		verbose("(closing video device)\n");
-		[[captureVideoDeviceInput device] close];
-	}
-
-	if ([[captureAudioDeviceInput device] isOpen]) {
-		verbose("(closing audio device)\n");
-		[[captureAudioDeviceInput device] close];
-	}
+//	if ([captureSession isRunning]) {
+//		verbose("(stopping capture session)\n");
+//		[captureSession stopRunning];
+//	}
+//
+//	if ([[captureVideoDeviceInput device] isOpen]) {
+//		verbose("(closing video device)\n");
+//		[[captureVideoDeviceInput device] close];
+//	}
+//
+//	if ([[captureAudioDeviceInput device] isOpen]) {
+//		verbose("(closing audio device)\n");
+//		[[captureAudioDeviceInput device] close];
+//	}
 
 	exit(0);
 }
@@ -388,14 +365,14 @@ unsigned long listDevices() {
 	NSArray *devices = [VideoSnap videoDevices];
 	unsigned long deviceCount = [devices count];
 
-	if (deviceCount > 0) {
-		console("Found %li available video devices:\n", deviceCount);
-		for (QTCaptureDevice *device in devices) {
-			printf("* %s\n", [[device description] UTF8String]);
-		}
-	} else {
-		console("no video devices found.\n");
-	}
+//	if (deviceCount > 0) {
+//		console("Found %li available video devices:\n", deviceCount);
+//		for (QTCaptureDevice *device in devices) {
+//			printf("* %s\n", [[device description] UTF8String]);
+//		}
+//	} else {
+//		console("no video devices found.\n");
+//	}
 
 	return deviceCount;
 }
@@ -407,9 +384,9 @@ unsigned long listDevices() {
 int processArgs(VideoSnap *videoSnap, int argc, const char * argv[]) {
 
 	// argument defaults
-	QTCaptureDevice *device            = nil;
+	AVCaptureDevice *device            = nil;
 	NSString        *filePath          = nil;
-	NSNumber        *recordingDuration = nil;
+	NSNumber        *recordingDuration = @2.0; //nil
 	NSNumber        *delaySeconds      = nil;
 	NSString        *videoSize         = DEFAULT_RECORDING_SIZE;
 	BOOL            noAudio            = NO;
@@ -564,7 +541,7 @@ BOOL is_verbose;
 int main(int argc, const char * argv[]) {
 
 	// global defaults
-	is_verbose     = NO;
+	is_verbose     = YES;
 	is_interrupted = NO;
 
 	// setup interrupt handler
