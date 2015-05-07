@@ -16,34 +16,40 @@
 }
 
 
-/**
- * return an array of attached QTCaptureDevices
- */
 + (NSArray *)videoDevices {
-	NSMutableArray *devices = [NSMutableArray arrayWithCapacity:3];
+	NSMutableArray *devices = [[NSMutableArray alloc] init];
 	[devices addObjectsFromArray:[AVCaptureDevice devicesWithMediaType:AVMediaTypeVideo]];
 	[devices addObjectsFromArray:[AVCaptureDevice devicesWithMediaType:AVMediaTypeMuxed]];
+
+	for (AVCaptureDevice *thisDevice in devices) {
+		if([thisDevice isConnected] == NO) {
+			[devices removeObject:thisDevice];
+		}
+	}
 
 	return devices;
 }
 
 
-/**
- * returns the default device or nil
- */
-+ (AVCaptureDevice *)defaultDevice {
-	AVCaptureDevice *device = [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeVideo];
-	if (!device) {
-		device = [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeMuxed];
-	}
++(void)listDevices {
+	unsigned long deviceCount = [[self videoDevices] count];
 
-	return device;
+	if (deviceCount > 0) {
+		console("Found %li connected video device%s:\n", deviceCount, (deviceCount > 1) ? "s" : "");
+		for (AVCaptureDevice *device in [self videoDevices]) {
+			printf("* %s%s", [[device localizedName] UTF8String], ([self defaultDevice] == device) ? " (default)" : "\n");
+		}
+	} else {
+		console("no video devices found.\n");
+	}
 }
 
 
-/**
- * returns a device matching the name or nil
- */
++ (AVCaptureDevice *)defaultDevice {
+	return [[self videoDevices] firstObject];
+}
+
+
 + (AVCaptureDevice *)deviceNamed:(NSString *)name {
 	AVCaptureDevice *device = nil;
 	NSArray *devices = [VideoSnap videoDevices];
@@ -57,9 +63,6 @@
 }
 
 
-/**
- * start a capture session on a device, saving to filePath for recordingDuration
- */
 - (BOOL)prepareCapture:(AVCaptureDevice *)videoDevice
 					  	filePath:(NSString *)filePath
 	   recordingDuration:(NSNumber *)recordingDuration
@@ -120,11 +123,6 @@
 }
 
 
-
-
-/**
- * sleeps for a number of seconds by pausing runLoop
- */
 - (void)sleep:(double)sleepSeconds {
 	verbose("(delaying for %.2lf seconds)\n", sleepSeconds);
 	[runLoop runUntilDate:[[[NSDate alloc] init] dateByAddingTimeInterval: sleepSeconds]];
@@ -132,9 +130,6 @@
 }
 
 
-/**
- * add video device to a capture session
- */
 - (BOOL)addVideoDevice:(AVCaptureDevice *)videoDevice {
 
 	BOOL success = NO;
@@ -160,9 +155,6 @@
 }
 
 
-/**
- * add audio device to a capture session
- */
 - (BOOL)addAudioDevice:(AVCaptureDevice *)videoDevice {
 
 //	BOOL success = NO;
@@ -193,9 +185,7 @@
 }
 
 
-/**
- * add audio device to a capture session
- */
+
 - (void)setCompressionOptions:(NSString *)videoCompression
 						 audioCompression:(NSString *)audioCompression {
 
@@ -221,9 +211,6 @@
 }
 
 
-/**
- * delegate called when camera samples the output buffer
- */
 //- (void)captureOutput:(QTCaptureFileOutput *)captureOutput
 //didOutputSampleBuffer:(QTSampleBuffer *)sampleBuffer
 //			 fromConnection:(QTCaptureConnection *)connection {
@@ -250,25 +237,17 @@
 //}
 
 
-/**
- * start the capture to the output file
- */
 - (void)startCapture:(NSString *)filePath {
 //	[captureMovieFileOutput recordToOutputFileURL: [NSURL fileURLWithPath:filePath]];
 	[runLoop run];
 }
 
-/**
- * stops the capture and writes to the output file
- */
+
 - (void)stopCapture {
 //	[captureMovieFileOutput recordToOutputFileURL:nil];
 }
 
 
-/**
- * delegate called when output file has been written to
- */
 //- (void)captureOutput:(QTCaptureFileOutput *)captureOutput
 //didFinishRecordingToOutputFileAtURL:(NSURL *)outputFileURL
 //			 forConnections:(NSArray *)connections
@@ -287,9 +266,6 @@
 //}
 
 
-/**
- * stops capture session and closes devices
- */
 -(void)finishCapture {
 
 //	if ([captureSession isRunning]) {
@@ -325,6 +301,13 @@
 
 
 /**
+ * globals
+ */
+BOOL is_interrupted;
+BOOL is_verbose;
+
+
+/**
  * print formatted help and options
  */
 void printHelp(NSString * commandName) {
@@ -354,27 +337,6 @@ void printHelp(NSString * commandName) {
 		printf("                %s%s\n", [videoSize UTF8String], [[videoSize isEqualToString:DEFAULT_RECORDING_SIZE] ? @" (default)" : @"" UTF8String]);
 	}
 	printf("\n");
-}
-
-
-/**
- * print a list of available video devices
- */
-unsigned long listDevices() {
-
-	NSArray *devices = [VideoSnap videoDevices];
-	unsigned long deviceCount = [devices count];
-
-//	if (deviceCount > 0) {
-//		console("Found %li available video devices:\n", deviceCount);
-//		for (QTCaptureDevice *device in devices) {
-//			printf("* %s\n", [[device description] UTF8String]);
-//		}
-//	} else {
-//		console("no video devices found.\n");
-//	}
-
-	return deviceCount;
 }
 
 
@@ -418,7 +380,7 @@ int processArgs(VideoSnap *videoSnap, int argc, const char * argv[]) {
 
 					// list devices
 				case 'l':
-					listDevices();
+					[VideoSnap listDevices];
 					return 0;
 					break;
 
@@ -499,7 +461,8 @@ int processArgs(VideoSnap *videoSnap, int argc, const char * argv[]) {
 	}
 	verbose("  delay:    %.2fs\n",    [delaySeconds floatValue]);
 	verbose("  file:     %s\n",       [filePath UTF8String]);
-	verbose("  device:   %s\n",       [[device description] UTF8String]);
+	verbose("  device:   %s\n",       [[device localizedName] UTF8String]);
+	verbose("            - %s\n",     [[device modelID] UTF8String]);
 	verbose("  video:    %s H.264\n", [videoSize UTF8String]);
 	verbose("  audio:    %s\n",       [noAudio ? @"(none)": @"HQ AAC" UTF8String]);
 
@@ -527,12 +490,6 @@ void SIGINT_handler(int signum) {
 		exit(0);
 	}
 }
-
-/**
- * globals
- */
-BOOL is_interrupted;
-BOOL is_verbose;
 
 
 /**

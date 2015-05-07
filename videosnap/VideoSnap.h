@@ -42,6 +42,7 @@ extern BOOL is_interrupted;
 	AVCaptureDeviceInput     *VideoInputDevice;
 }
 
+
 // class methods
 
 /**
@@ -66,6 +67,11 @@ extern BOOL is_interrupted;
  * @return AVCaptureDevice
  */
 +(AVCaptureDevice *)deviceNamed:(NSString *)name;
+
+/**
+ * Lists all attached & connected AVCaptureDevice's capable of video capturing
+ */
++(void)listDevices;
 
 
 // instance methods
