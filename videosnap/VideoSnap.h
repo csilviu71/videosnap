@@ -10,26 +10,6 @@
 #import <CoreMedia/CoreMedia.h>
 #import <AVFoundation/AVFoundation.h>
 
-// logging helpers
-#define error(...) fprintf(stderr, __VA_ARGS__)
-#define console(...) printf(__VA_ARGS__)
-#define verbose(...) (is_verbose && fprintf(stderr, __VA_ARGS__))
-
-// version
-#define VERSION @"0.0.2"
-
-// defaults
-#define DEFAULT_RECORDING_FILENAME @"movie.mov"
-#define DEFAULT_RECORDING_SIZE     @"SD480"
-#define DEFAULT_VIDEO_SIZES        @[@"120", @"240", @"SD480", @"HD720"]
-#define CAPTURE_FRAMES_PER_SECOND	 20
-
-// global verbose flag
-extern BOOL is_verbose;
-
-// global var used to signal interrupt happened (tinyurl.com/lutqg2z)
-extern BOOL is_interrupted;
-
 // VideoSnap
 @interface VideoSnap : NSObject {
 	NSNumber                 *maxRecordingSeconds;     // record duration
@@ -41,7 +21,6 @@ extern BOOL is_interrupted;
 	AVCaptureMovieFileOutput *MovieFileOutput;
 	AVCaptureDeviceInput     *VideoInputDevice;
 }
-
 
 // class methods
 

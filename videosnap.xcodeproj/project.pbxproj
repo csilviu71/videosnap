@@ -10,6 +10,7 @@
 		C96492FC17C0FD8F005C11A4 /* VideoSnap.m in Sources */ = {isa = PBXBuildFile; fileRef = C96492FB17C0FD8F005C11A4 /* VideoSnap.m */; };
 		C96492FE17C0FD8F005C11A4 /* videosnap.1 in CopyFiles */ = {isa = PBXBuildFile; fileRef = C96492FD17C0FD8F005C11A4 /* videosnap.1 */; };
 		C969B7B91AF17F150061E100 /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C969B7B81AF17F150061E100 /* AVFoundation.framework */; };
+		C9A5123D1AFD160800489AF7 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = C9A5123C1AFD160800489AF7 /* main.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -31,6 +32,7 @@
 		C96492FD17C0FD8F005C11A4 /* videosnap.1 */ = {isa = PBXFileReference; lastKnownFileType = text.man; path = videosnap.1; sourceTree = "<group>"; };
 		C964930417C10194005C11A4 /* VideoSnap.h */ = {isa = PBXFileReference; fileEncoding = 4; indentWidth = 2; lastKnownFileType = sourcecode.c.h; path = VideoSnap.h; sourceTree = "<group>"; tabWidth = 2; usesTabs = 1; wrapsLines = 0; };
 		C969B7B81AF17F150061E100 /* AVFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFoundation.framework; path = System/Library/Frameworks/AVFoundation.framework; sourceTree = SDKROOT; };
+		C9A5123C1AFD160800489AF7 /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -68,6 +70,7 @@
 				C96492FB17C0FD8F005C11A4 /* VideoSnap.m */,
 				C96492FD17C0FD8F005C11A4 /* videosnap.1 */,
 				C964930417C10194005C11A4 /* VideoSnap.h */,
+				C9A5123C1AFD160800489AF7 /* main.m */,
 			);
 			path = videosnap;
 			sourceTree = "<group>";
@@ -123,6 +126,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C9A5123D1AFD160800489AF7 /* main.m in Sources */,
 				C96492FC17C0FD8F005C11A4 /* VideoSnap.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
