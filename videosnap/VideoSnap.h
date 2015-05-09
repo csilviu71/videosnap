@@ -10,16 +10,17 @@
 #import <CoreMedia/CoreMedia.h>
 #import <AVFoundation/AVFoundation.h>
 
+
 // VideoSnap
 @interface VideoSnap : NSObject {
-	NSNumber                 *maxRecordingSeconds;     // record duration
-	NSDate									 *recordingStartedDate;    // when recording started
+	NSNumber                 *maxRecordingSeconds;
+	NSDate									 *recordingStartedDate;
 	NSRunLoop                *runLoop;
-
-	BOOL                     *WeAreRecording;
-	AVCaptureSession         *CaptureSession;
-	AVCaptureMovieFileOutput *MovieFileOutput;
-	AVCaptureDeviceInput     *VideoInputDevice;
+	Boolean                  isVerbose;
+	Boolean                  isSilent;
+	AVCaptureSession         *captureSession;
+	AVCaptureMovieFileOutput *movieFileOutput;
+	AVCaptureDeviceInput     *videoInputDevice;
 }
 
 // class methods
@@ -47,28 +48,40 @@
  */
 +(AVCaptureDevice *)deviceNamed:(NSString *)name;
 
-/**
- * Lists all attached & connected AVCaptureDevice's capable of video capturing
- */
-+(void)listDevices;
-
 
 // instance methods
 
--(id)init;
+-(id)initWithArgs:(NSArray *)args;
+
+
+/**
+ * Logs console messages to stdout
+ */
+-(void)console:(NSString *)message;
+-(void)error:(NSString *)message;
+-(void)verbose:(NSString *)message;
+
+
+/**
+ * Lists all attached & connected AVCaptureDevice's capable of video capturing
+ */
+-(void)listDevices;
+
+
 
 /**
  * Creates a capture session on device, saving to a filePath for recordSeconds
  * return (BOOL) YES successful or (BOOL) NO if not
  *
- * @return BOOL
+ * @return Boolean
  */
--(BOOL)prepareCapture:(AVCaptureDevice *)device filePath:(NSString *)filePath recordingDuration:(NSNumber *)recordingDuration videoSize:(NSString *)videoSize withDelay:(NSNumber *)withDelay noAudio:(BOOL)noAudio;
+-(Boolean)prepareCapture:(AVCaptureDevice *)device filePath:(NSString *)filePath recordingDuration:(NSNumber *)recordingDuration videoSize:(NSString *)videoSize withDelay:(NSNumber *)withDelay noAudio:(Boolean)noAudio;
 
 /**
  * Sleeps for a number of seconds
  */
 -(void)sleep:(double)sleepSeconds;
+
 
 /**
  * Starts capturing to the file path
@@ -86,19 +99,19 @@
 -(void)finishCapture;
 
 /**
- * Adds a video device to the capture session returns (BOOL) YES if successful
+ * Adds a video device to the capture session returns YES if successful
  *
- * @return BOOL
+ * @return Boolean
  */
--(BOOL)addVideoDevice:(AVCaptureDevice *)videoDevice;
+-(Boolean)addVideoDevice:(AVCaptureDevice *)videoDevice;
 
 /**
  * Adds an audio device to the capture session, uses the audio from videoDevice
- * if it is available, returns (BOOL) YES if successful
+ * if it is available, returns YES if successful
  *
- * @return BOOL
+ * @return Boolean
  */
--(BOOL)addAudioDevice:(AVCaptureDevice *)videoDevice;
+-(Boolean)addAudioDevice:(AVCaptureDevice *)videoDevice;
 
 /**
  * Sets compression video/audio options on the output file
