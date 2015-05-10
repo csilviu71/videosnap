@@ -13,10 +13,12 @@
 static NSString *const VERSION                    = @"0.0.2";
 static NSString *const DEFAULT_RECORDING_FILEPATH = @"movie.mov";
 static NSString *const DEFAULT_RECORDING_FORMAT   = @"SD480";
-static NSString *const RECORDING_FORMATS[]        = { @"120", @"240", @"SD480", @"HD720" };
+NSArray *RECORDING_FORMATS;
 
 
 - (id)init {
+
+	RECORDING_FORMATS = [NSArray arrayWithObjects: @"120", @"240", @"SD480", @"HD720", nil];
 
 	numberFormatter = [[NSNumberFormatter alloc] init];
 	numberFormatter.numberStyle = NSNumberFormatterDecimalStyle;
@@ -83,6 +85,17 @@ static NSString *const RECORDING_FORMATS[]        = { @"120", @"240", @"SD480", 
 				case 'f':
 					if (i+1 < argc) {
 						recordingFormat = [NSString stringWithUTF8String:argv[i+1]];
+
+						// check recordingFormat is valid
+						NSArray *validChosenSize = [RECORDING_FORMATS filteredArrayUsingPredicate:[NSPredicate predicateWithBlock:^BOOL(NSString *option, NSDictionary *bindings) {
+							return [recordingFormat isEqualToString:option];
+						}]];
+
+						if (!validChosenSize.count) {
+							[self error: [NSString stringWithFormat: @"Invalid recording format (must be %s)\n", [[RECORDING_FORMATS componentsJoinedByString:@", "] UTF8String]]];
+							return 1;
+						}
+
 						++i;
 					}
 					break;
@@ -106,6 +119,20 @@ static NSString *const RECORDING_FORMATS[]        = { @"120", @"240", @"SD480", 
 		}
 	}
 
+	// show options in verbose mode
+	if (recordingDuration) {
+		[self verbose: [NSString stringWithFormat:@"  duration: %.2fs\n", [recordingDuration floatValue]]];
+	} else {
+		[self verbose: @"  duration: (infinite)\n"];
+	}
+
+	[self verbose: [NSString stringWithFormat:@"     delay: %.2fs\n", [delaySeconds floatValue]]];
+	[self verbose: [NSString stringWithFormat:@"      file: %s\n",    [[fileURL path] UTF8String]]];
+	[self verbose: [NSString stringWithFormat:@"    device: %s\n",    [[captureDevice localizedName] UTF8String]]];
+	[self verbose: [NSString stringWithFormat:@"            - %s\n",  [[captureDevice modelID] UTF8String]]];
+	[self verbose: [NSString stringWithFormat:@"     video: %s\n",    [recordingFormat UTF8String]]];
+	[self verbose: [NSString stringWithFormat:@"     audio: %s\n",    [noAudio ? @"(none)": @"HQ AAC" UTF8String]]];
+
 	return 0;
 }
 
@@ -114,7 +141,7 @@ static NSString *const RECORDING_FORMATS[]        = { @"120", @"240", @"SD480", 
 
 	printf("VideoSnap (%s)\n\n", [VERSION UTF8String]);
 
-	printf("  Record video and audio from a QuickTime capture device\n\n");
+	printf("  Record video and audio from a capture device\n\n");
 
 	printf("  See the argument list below for all available options.\n");
 	printf("  By default videosnap will capture and encode using the\n");
@@ -123,21 +150,21 @@ static NSString *const RECORDING_FORMATS[]        = { @"120", @"240", @"SD480", 
 	printf("  interrupt with CTRL+c.\n");
 
 	printf("\n    usage: %s [options] [file ...]", [commandName UTF8String]);
-	printf("\n  example: %s -t 5.75 -d 'Built-in iSight' -s 'HD720' my_movie.mov\n\n", [commandName UTF8String]);
+	printf("\n  example: %s -t 5.75 -d 'Built-in iSight' -f 'HD720' my_movie.mov\n\n", [commandName UTF8String]);
 
-	printf("  -l          List attached QuickTime capture devices\n");
+	printf("  -h          Show help\n");
+	printf("  -l          List attached capture devices\n");
 	printf("  -t x.xx     Set duration of video (in seconds)\n");
 	printf("  -w x.xx     Set delay before capturing starts (in seconds) \n");
 	printf("  -d device   Set the capture device by name\n");
 	printf("  --no-audio  Disable audio capturing\n");
-	printf("  -h          Show help\n");
-	printf("  -v          Turn ON verbose mode (OFF by default)\n");
+  printf("  -v          Turn ON verbose mode (OFF by default)\n");
 	printf("  -s          Turn ON silent mode (OFF by default)\n");
-	printf("  -f          Set the H.264 video size/quality\n");
+	printf("  -f          Set the H.264 video format\n");
 
-//	for (id videoSize in RECORDING_FORMATS) {
-//		printf("                %s%s\n", [videoSize UTF8String], [[videoSize isEqualToString:DEFAULT_RECORDING_SIZE] ? @" (default)" : @"" UTF8String]);
-//	}
+	for (id videoSize in RECORDING_FORMATS) {
+		printf("                %s%s\n", [videoSize UTF8String], [(videoSize == DEFAULT_RECORDING_FORMAT) ? @" (default)" : @"" UTF8String]);
+	}
 	printf("\n");
 }
 
@@ -434,56 +461,10 @@ static NSString *const RECORDING_FORMATS[]        = { @"120", @"240", @"SD480", 
 @end
 
 
-
-
-
-
 /**
  * process command line arguments and start capturing
  */
 //int processArgs(VideoSnap *videoSnap, int argc, const char * argv[]) {
-//
-//	// check we have a file
-//	if (!filePath) {
-//		filePath = DEFAULT_RECORDING_FILENAME;
-//		verbose("(no filename specified, using default)\n");
-//	}
-//
-//	// check we have a device
-//	if (!device) {
-//		device = [VideoSnap defaultDevice];
-//		if (!device) {
-//			error("No video devices found! - aborting\n");
-//			return 1;
-//		} else {
-//			verbose("(no device specified, using default)\n");
-//		}
-//	}
-//
-//	// check we have a valid videoSize
-//	NSArray *validChosenSize = [DEFAULT_VIDEO_SIZES filteredArrayUsingPredicate:[NSPredicate predicateWithBlock:^BOOL(NSString *option, NSDictionary *bindings) {
-//		return [videoSize isEqualToString:option];
-//	}]];
-//
-//	if (!validChosenSize.count) {
-//		error("Invalid video size! (must be %s) - aborting\n", [[DEFAULT_VIDEO_SIZES componentsJoinedByString:@", "] UTF8String]);
-//		return 128;
-//	}
-//
-//	// show options in verbose mode
-//	verbose("(options before recording)\n");
-//	if (recordingDuration) {
-//		verbose("  duration: %.2fs\n", [recordingDuration floatValue]);
-//	} else {
-//		verbose("  duration: (infinite)\n");
-//	}
-//	verbose("  delay:    %.2fs\n",    [delaySeconds floatValue]);
-//	verbose("  file:     %s\n",       [filePath UTF8String]);
-//	verbose("  device:   %s\n",       [[device localizedName] UTF8String]);
-//	verbose("            - %s\n",     [[device modelID] UTF8String]);
-//	verbose("  video:    %s H.264\n", [videoSize UTF8String]);
-//	verbose("  audio:    %s\n",       [noAudio ? @"(none)": @"HQ AAC" UTF8String]);
-//
 //	// start the capture session with options
 //	[videoSnap prepareCapture:device
 //									 filePath:filePath
@@ -492,6 +473,5 @@ static NSString *const RECORDING_FORMATS[]        = { @"120", @"240", @"SD480", 
 //									withDelay:delaySeconds
 //										noAudio:noAudio];
 //
-
 //	return 0;
 //}

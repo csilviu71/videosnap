@@ -13,16 +13,15 @@
 
 // VideoSnap
 @interface VideoSnap : NSObject {
-	Boolean         noAudio;
-	Boolean         isVerbose;
-	Boolean         isSilent;
-	NSNumber        *delaySeconds;
-	NSNumber        *recordingDuration;
-	NSString        *recordingFormat;
-	NSURL           *fileURL;
-	NSRunLoop       *runLoop;
-	
-	
+	Boolean   noAudio;
+	Boolean   isVerbose;
+	Boolean   isSilent;
+	NSNumber  *delaySeconds;
+	NSNumber  *recordingDuration;
+	NSString  *recordingFormat;
+	NSURL     *fileURL;
+	NSRunLoop *runLoop;
+
 	AVCaptureDevice   *captureDevice;
 	NSNumberFormatter *numberFormatter;
 
