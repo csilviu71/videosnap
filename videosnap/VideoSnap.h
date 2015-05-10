@@ -13,14 +13,25 @@
 
 // VideoSnap
 @interface VideoSnap : NSObject {
-	NSNumber                 *maxRecordingSeconds;
-	NSDate									 *recordingStartedDate;
-	NSRunLoop                *runLoop;
-	Boolean                  isVerbose;
-	Boolean                  isSilent;
-	AVCaptureSession         *captureSession;
-	AVCaptureMovieFileOutput *movieFileOutput;
-	AVCaptureDeviceInput     *videoInputDevice;
+	Boolean         noAudio;
+	Boolean         isVerbose;
+	Boolean         isSilent;
+	NSNumber        *delaySeconds;
+	NSNumber        *recordingDuration;
+	NSString        *recordingFormat;
+	NSURL           *fileURL;
+	NSRunLoop       *runLoop;
+	
+	
+	AVCaptureDevice   *captureDevice;
+	NSNumberFormatter *numberFormatter;
+
+
+//	NSNumber                 *maxRecordingSeconds;
+//	NSDate									 *recordingStartedDate;
+//	AVCaptureSession         *captureSession;
+//	AVCaptureMovieFileOutput *movieFileOutput;
+//	AVCaptureDeviceInput     *videoInputDevice;
 }
 
 // class methods
@@ -49,10 +60,19 @@
 +(AVCaptureDevice *)deviceNamed:(NSString *)name;
 
 
-// instance methods
+/**
+ * Prints command help information with example arguments
+ */
++(void)printHelp:(NSString *)commandName;
 
--(id)initWithArgs:(NSArray *)args;
+// Instance methods
 
+-(id)init;
+
+/**
+ * Parse command line arguments and run command
+ */
+-(int)processArgs:(int)argc argv:(const char *[])argv;
 
 /**
  * Logs console messages to stdout
@@ -63,9 +83,9 @@
 
 
 /**
- * Lists all attached & connected AVCaptureDevice's capable of video capturing
+ * Prints all attached & connected AVCaptureDevice's capable of video capturing
  */
--(void)listDevices;
+-(void)printDeviceList;
 
 
 
