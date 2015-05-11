@@ -11,6 +11,7 @@
 		C96492FE17C0FD8F005C11A4 /* videosnap.1 in CopyFiles */ = {isa = PBXBuildFile; fileRef = C96492FD17C0FD8F005C11A4 /* videosnap.1 */; };
 		C969B7B91AF17F150061E100 /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C969B7B81AF17F150061E100 /* AVFoundation.framework */; };
 		C9A5123D1AFD160800489AF7 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = C9A5123C1AFD160800489AF7 /* main.m */; };
+		C9BEF8A41B01590F0016958B /* CoreMedia.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C9BEF8A31B01590F0016958B /* CoreMedia.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -33,6 +34,7 @@
 		C964930417C10194005C11A4 /* VideoSnap.h */ = {isa = PBXFileReference; fileEncoding = 4; indentWidth = 2; lastKnownFileType = sourcecode.c.h; path = VideoSnap.h; sourceTree = "<group>"; tabWidth = 2; usesTabs = 1; wrapsLines = 0; };
 		C969B7B81AF17F150061E100 /* AVFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFoundation.framework; path = System/Library/Frameworks/AVFoundation.framework; sourceTree = SDKROOT; };
 		C9A5123C1AFD160800489AF7 /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		C9BEF8A31B01590F0016958B /* CoreMedia.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMedia.framework; path = System/Library/Frameworks/CoreMedia.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -40,6 +42,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C9BEF8A41B01590F0016958B /* CoreMedia.framework in Frameworks */,
 				C969B7B91AF17F150061E100 /* AVFoundation.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -50,6 +53,7 @@
 		C96492EF17C0FD8F005C11A4 = {
 			isa = PBXGroup;
 			children = (
+				C9BEF8A31B01590F0016958B /* CoreMedia.framework */,
 				C969B7B81AF17F150061E100 /* AVFoundation.framework */,
 				C96492FA17C0FD8F005C11A4 /* videosnap */,
 				C96492F917C0FD8F005C11A4 /* Products */,

@@ -10,6 +10,10 @@
 #import <CoreMedia/CoreMedia.h>
 #import <AVFoundation/AVFoundation.h>
 
+// logging macros
+#define error(...) fprintf(stderr, __VA_ARGS__)
+#define console(...) if(!isSilent || isVerbose) { fprintf(stdout, __VA_ARGS__); }
+#define verbose(...) if(isVerbose) { fprintf(stdout, __VA_ARGS__); }
 
 // VideoSnap
 @interface VideoSnap : NSObject {
@@ -22,9 +26,10 @@
 	NSURL     *fileURL;
 	NSRunLoop *runLoop;
 
-	AVCaptureDevice   *captureDevice;
-	NSNumberFormatter *numberFormatter;
-
+	AVCaptureDevice          *captureDevice;
+	AVCaptureSession         *captureSession;
+	AVCaptureMovieFileOutput *movieFileOutput;
+	AVCaptureDeviceInput     *videoInputDevice;
 
 //	NSNumber                 *maxRecordingSeconds;
 //	NSDate									 *recordingStartedDate;
@@ -58,11 +63,12 @@
  */
 +(AVCaptureDevice *)deviceNamed:(NSString *)name;
 
-
 /**
  * Prints command help information with example arguments
  */
 +(void)printHelp:(NSString *)commandName;
+
+
 
 // Instance methods
 
@@ -74,38 +80,22 @@
 -(int)processArgs:(int)argc argv:(const char *[])argv;
 
 /**
- * Logs console messages to stdout
- */
--(void)console:(NSString *)message;
--(void)error:(NSString *)message;
--(void)verbose:(NSString *)message;
-
-
-/**
  * Prints all attached & connected AVCaptureDevice's capable of video capturing
  */
 -(void)printDeviceList;
 
-
-
 /**
  * Creates a capture session on device, saving to a filePath for recordSeconds
- * return (BOOL) YES successful or (BOOL) NO if not
+ * return YES if successful
  *
  * @return Boolean
  */
--(Boolean)prepareCapture:(AVCaptureDevice *)device filePath:(NSString *)filePath recordingDuration:(NSNumber *)recordingDuration videoSize:(NSString *)videoSize withDelay:(NSNumber *)withDelay noAudio:(Boolean)noAudio;
-
-/**
- * Sleeps for a number of seconds
- */
--(void)sleep:(double)sleepSeconds;
-
+-(Boolean)prepareCapture;
 
 /**
  * Starts capturing to the file path
  */
--(void)startCapture:(NSString *)filePath;
+-(void)startCapture;
 
 /**
  * Stops the capture and writes to the output file
@@ -116,6 +106,12 @@
  * Stops capture session and closes devices
  */
 -(void)finishCapture;
+
+/**
+ * Sleeps for a number of seconds
+ */
+-(void)sleep:(double)sleepSeconds;
+
 
 /**
  * Adds a video device to the capture session returns YES if successful

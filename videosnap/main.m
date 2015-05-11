@@ -29,7 +29,6 @@ void SIGINT_handler(int signum) {
 int main(int argc, const char * argv[]) {
 
 	signal(SIGINT, &SIGINT_handler);
-	VideoSnap *videoSnap = [[VideoSnap alloc] init];
 
-	return [videoSnap processArgs: argc argv:argv];
+	return [[[VideoSnap alloc] init] processArgs: argc argv:argv];
 }

@@ -19,16 +19,12 @@ NSArray *RECORDING_FORMATS;
 - (id)init {
 
 	RECORDING_FORMATS = [NSArray arrayWithObjects: @"120", @"240", @"SD480", @"HD720", nil];
-
-	numberFormatter = [[NSNumberFormatter alloc] init];
-	numberFormatter.numberStyle = NSNumberFormatterDecimalStyle;
-
 	recordingDuration = nil;
 	fileURL           = [NSURL fileURLWithPath: DEFAULT_RECORDING_FILEPATH];
   recordingFormat   = DEFAULT_RECORDING_FORMAT;
 	delaySeconds      = @0.0;
 	captureDevice     = [VideoSnap defaultDevice];
-	isVerbose         = NO;
+	isVerbose         = YES;//NO;
 	isSilent          = NO;
 	noAudio           = NO;
   runLoop           = [NSRunLoop currentRunLoop];
@@ -39,17 +35,18 @@ NSArray *RECORDING_FORMATS;
 
 - (int)processArgs:(int)argc argv:(const char *[])argv {
 
+	NSNumberFormatter *numberFormatter = [[NSNumberFormatter alloc] init];
+	numberFormatter.numberStyle = NSNumberFormatterDecimalStyle;
+
 	for (int i=1; i<argc; ++i) {
 
 		// check for a switch
 		if (argv[i][0] == '-') {
 
-			// noAudio
 			if (strcmp(argv[i], "--no-audio") == 0) {
 				noAudio = YES;
 			}
 
-			// check arguments
 			switch (argv[i][1]) {
 
 				case 'h':
@@ -75,7 +72,7 @@ NSArray *RECORDING_FORMATS;
 						NSString *chosenDeviceName = [NSString stringWithUTF8String:argv[i+1]];
 						captureDevice = [VideoSnap deviceNamed: chosenDeviceName];
 						if (!captureDevice) {
-							[self error: [NSString stringWithFormat:@"Device \"%s\" not found\n", [chosenDeviceName UTF8String]]];
+							error("Device \"%s\" not found\n", [chosenDeviceName UTF8String]);
 							return 1;
 						}
 						++i;
@@ -92,7 +89,7 @@ NSArray *RECORDING_FORMATS;
 						}]];
 
 						if (!validChosenSize.count) {
-							[self error: [NSString stringWithFormat: @"Invalid recording format (must be %s)\n", [[RECORDING_FORMATS componentsJoinedByString:@", "] UTF8String]]];
+							error("Invalid recording format (must be %s)\n", [[RECORDING_FORMATS componentsJoinedByString:@", "] UTF8String]);
 							return 1;
 						}
 
@@ -119,21 +116,22 @@ NSArray *RECORDING_FORMATS;
 		}
 	}
 
-	// show options in verbose mode
+	// print options in verbose mode
+	verbose("* Options before capturing\n");
 	if (recordingDuration) {
-		[self verbose: [NSString stringWithFormat:@"  duration: %.2fs\n", [recordingDuration floatValue]]];
+		verbose("  duration: %.2fs\n", [recordingDuration floatValue]);
 	} else {
-		[self verbose: @"  duration: (infinite)\n"];
+		verbose("  duration: (infinite)\n");
 	}
 
-	[self verbose: [NSString stringWithFormat:@"     delay: %.2fs\n", [delaySeconds floatValue]]];
-	[self verbose: [NSString stringWithFormat:@"      file: %s\n",    [[fileURL path] UTF8String]]];
-	[self verbose: [NSString stringWithFormat:@"    device: %s\n",    [[captureDevice localizedName] UTF8String]]];
-	[self verbose: [NSString stringWithFormat:@"            - %s\n",  [[captureDevice modelID] UTF8String]]];
-	[self verbose: [NSString stringWithFormat:@"     video: %s\n",    [recordingFormat UTF8String]]];
-	[self verbose: [NSString stringWithFormat:@"     audio: %s\n",    [noAudio ? @"(none)": @"HQ AAC" UTF8String]]];
+	verbose("     delay: %.2fs\n", [delaySeconds floatValue]);
+	verbose("      file: %s\n",    [[fileURL path] UTF8String]);
+	verbose("    device: %s\n",    [[captureDevice localizedName] UTF8String]);
+	verbose("            - %s\n",  [[captureDevice modelID] UTF8String]);
+	verbose("     video: %s\n",    [recordingFormat UTF8String]);
+	verbose("     audio: %s\n",    [noAudio ? @"(none)": @"HQ AAC" UTF8String]);
 
-	return 0;
+	return [self prepareCapture];
 }
 
 
@@ -202,24 +200,6 @@ NSArray *RECORDING_FORMATS;
 }
 
 
--(void)console:(NSString *)message {
-	if(!isSilent || isVerbose) {
-  	fprintf(stdout, "%s", [message UTF8String]);
-	}
-}
-
-
--(void)error:(NSString *)message {
-	fprintf(stderr, "%s", [message UTF8String]);
-}
-
-
--(void)verbose:(NSString *)message {
-	if(isVerbose) {
-		fprintf(stdout, "%s", [message UTF8String]);
-	}
-}
-
 -(void)printDeviceList {
 	unsigned long deviceCount = [[VideoSnap videoDevices] count];
 
@@ -230,19 +210,111 @@ NSArray *RECORDING_FORMATS;
 			printf("* %s%s\n", [[thisDevice localizedName] UTF8String], (([VideoSnap defaultDevice] == thisDevice) ? " (default)" : ""));
 		}
 	} else {
-	  [self console: @"no video devices found.\n"];
+	  console("no video devices found.\n");
 	}
 }
 
 
-- (Boolean)prepareCapture:(AVCaptureDevice *)videoDevice
-					  	filePath:(NSString *)filePath
-	   recordingDuration:(NSNumber *)recordingDuration
-	  				 videoSize:(NSString *)videoSize
-	  				 withDelay:(NSNumber *)delaySeconds
-	  					 noAudio:(Boolean)noAudio {
+- (Boolean)prepareCapture {
 
 	Boolean success = NO;
+
+	//---------------------------------
+	//----- SETUP CAPTURE SESSION -----
+	//---------------------------------
+	verbose("Setting up capture session\n");
+	captureSession = [[AVCaptureSession alloc] init];
+
+	//----- ADD INPUTS -----
+	verbose("Adding video input\n");
+
+	//ADD VIDEO INPUT
+	AVCaptureDevice *VideoDevice = [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeVideo];
+	if (VideoDevice)
+		{
+		NSError *error;
+		videoInputDevice = [AVCaptureDeviceInput deviceInputWithDevice:VideoDevice error:&error];
+		if (!error)
+			{
+			if ([captureSession canAddInput:videoInputDevice])
+				[captureSession addInput:videoInputDevice];
+			else
+				verbose("Couldn't add video input\n");
+			}
+		else
+			{
+			verbose("Couldn't create video input\n");
+			}
+		}
+	else
+		{
+		verbose("Couldn't create video capture device\n");
+		}
+
+	//ADD AUDIO INPUT
+	verbose("Adding audio input\n");
+	AVCaptureDevice *audioCaptureDevice = [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeAudio];
+	NSError *error = nil;
+	AVCaptureDeviceInput *audioInput = [AVCaptureDeviceInput deviceInputWithDevice:audioCaptureDevice error:&error];
+	if (audioInput)
+		{
+		[captureSession addInput:audioInput];
+		}
+
+
+	//----- ADD OUTPUTS -----
+
+
+	//ADD MOVIE FILE OUTPUT
+	verbose("Adding movie file output\n");
+	movieFileOutput = [[AVCaptureMovieFileOutput alloc] init];
+
+	Float64 TotalSeconds = 60;			//Total seconds
+	int32_t preferredTimeScale = 30;	//Frames per second
+	CMTime maxDuration = CMTimeMakeWithSeconds(TotalSeconds, preferredTimeScale);	//<<SET MAX DURATION
+	movieFileOutput.maxRecordedDuration = maxDuration;
+
+	movieFileOutput.minFreeDiskSpaceLimit = 1024 * 1024;						//<<SET MIN FREE SPACE IN BYTES FOR RECORDING TO CONTINUE ON A VOLUME
+
+	if ([captureSession canAddOutput:movieFileOutput])
+		[captureSession addOutput:movieFileOutput];
+
+	//SET THE CONNECTION PROPERTIES (output properties)
+//	AVCaptureConnection *CaptureConnection = [movieFileOutput connectionWithMediaType:AVMediaTypeVideo];
+//
+//	//Set frame rate (if requried)
+//	CMTimeShow(CaptureConnection.videoMinFrameDuration);
+//	CMTimeShow(CaptureConnection.videoMaxFrameDuration);
+//
+//	if (CaptureConnection.supportsVideoMinFrameDuration)
+//		CaptureConnection.videoMinFrameDuration = CMTimeMake(1, 20); // 20 is CAPTURE_FRAMES_PER_SECOND
+//	if (CaptureConnection.supportsVideoMaxFrameDuration)
+//		CaptureConnection.videoMaxFrameDuration = CMTimeMake(1, 20);
+//
+//	CMTimeShow(CaptureConnection.videoMinFrameDuration);
+//	CMTimeShow(CaptureConnection.videoMaxFrameDuration);
+
+
+	//----- SET THE IMAGE QUALITY / RESOLUTION -----
+	//Options:
+	//	AVCaptureSessionPresetHigh - Highest recording quality (varies per device)
+	//	AVCaptureSessionPresetMedium - Suitable for WiFi sharing (actual values may change)
+	//	AVCaptureSessionPresetLow - Suitable for 3G sharing (actual values may change)
+	//	AVCaptureSessionPreset640x480 - 640x480 VGA (check its supported before setting it)
+	//	AVCaptureSessionPreset1280x720 - 1280x720 720p HD (check its supported before setting it)
+	//	AVCaptureSessionPresetPhoto - Full photo resolution (not supported for video output)
+	verbose("Setting image quality\n");
+	[captureSession setSessionPreset:AVCaptureSessionPresetMedium];
+	if ([captureSession canSetSessionPreset:AVCaptureSessionPreset640x480])		//Check size based configs are supported before setting them
+		[captureSession setSessionPreset:AVCaptureSessionPreset640x480];
+
+	//----- START THE CAPTURE SESSION RUNNING -----
+	[captureSession startRunning];
+	[movieFileOutput startRecordingToOutputFileURL:fileURL recordingDelegate: self];
+	[self startCapture];
+
+
+
 
 //	NSError *nserror;
 //
@@ -409,8 +481,9 @@ NSArray *RECORDING_FORMATS;
 //}
 
 
-- (void)startCapture:(NSString *)filePath {
-//	[captureMovieFileOutput recordToOutputFileURL: [NSURL fileURLWithPath:filePath]];
+- (void)startCapture {
+
+	//[captureMovieFileOutput recordToOutputFileURL: fileURL, delegate: self];
 	[runLoop run];
 }
 
@@ -437,6 +510,16 @@ NSArray *RECORDING_FORMATS;
 //	[self finishCapture];
 //}
 
+- (void)captureOutput:(AVCaptureFileOutput *)captureOutput
+didFinishRecordingToOutputFileAtURL:(NSURL *)outputFileURL
+										fromConnections:(NSArray *)connections
+															error:(NSError *)error
+{
+
+	verbose("didFinishRecordingToOutputFileAtURL - enter");
+
+}
+
 
 -(void)finishCapture {
 
@@ -459,19 +542,3 @@ NSArray *RECORDING_FORMATS;
 }
 
 @end
-
-
-/**
- * process command line arguments and start capturing
- */
-//int processArgs(VideoSnap *videoSnap, int argc, const char * argv[]) {
-//	// start the capture session with options
-//	[videoSnap prepareCapture:device
-//									 filePath:filePath
-//					recordingDuration:recordingDuration
-//									videoSize:videoSize
-//									withDelay:delaySeconds
-//										noAudio:noAudio];
-//
-//	return 0;
-//}
