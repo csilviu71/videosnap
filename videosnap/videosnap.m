@@ -33,6 +33,86 @@ NSArray *RECORDING_FORMATS;
 }
 
 
++ (void)printHelp: (NSString *)commandName {
+
+	printf("VideoSnap (%s)\n\n", [VERSION UTF8String]);
+
+	printf("  Record video and audio from a capture device\n\n");
+
+	printf("  See the argument list below for all available options.\n");
+	printf("  By default videosnap will capture and encode using the\n");
+	printf("  H.264(SD480)/AAC format to 'movie.mov'. If you do not\n");
+	printf("  specify a duration, capturing will continue until you\n");
+	printf("  interrupt with CTRL+c.\n");
+
+	printf("\n    usage: %s [options] [file ...]", [commandName UTF8String]);
+	printf("\n  example: %s -t 5.75 -d 'Built-in iSight' -f 'HD720' my_movie.mov\n\n", [commandName UTF8String]);
+
+	printf("  -h          Show help\n");
+	printf("  -l          List attached capture devices\n");
+	printf("  -t x.xx     Set duration of video (in seconds)\n");
+	printf("  -w x.xx     Set delay before capturing starts (in seconds) \n");
+	printf("  -d device   Set the capture device by name\n");
+	printf("  --no-audio  Disable audio capturing\n");
+  printf("  -v          Turn ON verbose mode (OFF by default)\n");
+	printf("  -s          Turn ON silent mode (OFF by default)\n");
+	printf("  -f          Set the H.264 video format\n");
+
+	for (id videoSize in RECORDING_FORMATS) {
+		printf("                %s%s\n", [videoSize UTF8String], [(videoSize == DEFAULT_RECORDING_FORMAT) ? @" (default)" : @"" UTF8String]);
+	}
+	printf("\n");
+}
+
+
++ (NSArray *)videoDevices {
+	NSMutableArray *devices = [[NSMutableArray alloc] init];
+	[devices addObjectsFromArray:[AVCaptureDevice devicesWithMediaType:AVMediaTypeVideo]];
+	[devices addObjectsFromArray:[AVCaptureDevice devicesWithMediaType:AVMediaTypeMuxed]];
+
+	for (AVCaptureDevice *thisDevice in devices) {
+		if([thisDevice isConnected] == NO) {
+			[devices removeObject:thisDevice];
+		}
+	}
+
+	return devices;
+}
+
+
++ (AVCaptureDevice *)defaultDevice {
+	return [[self videoDevices] firstObject];
+}
+
+
++ (AVCaptureDevice *)deviceNamed:(NSString *)name {
+	AVCaptureDevice *device = nil;
+	NSArray *devices = [VideoSnap videoDevices];
+	for (AVCaptureDevice *thisDevice in devices) {
+		if ([name isEqualToString:[thisDevice description]]) {
+			device = thisDevice;
+		}
+	}
+
+	return device;
+}
+
+
+-(void)printDeviceList {
+	unsigned long deviceCount = [[VideoSnap videoDevices] count];
+
+	if (deviceCount > 0) {
+		printf("Found %li connected video device%s:\n", deviceCount, (deviceCount > 1) ? "s" : "");
+
+		for (AVCaptureDevice *thisDevice in [VideoSnap videoDevices]) {
+			printf("* %s%s\n", [[thisDevice localizedName] UTF8String], (([VideoSnap defaultDevice] == thisDevice) ? " (default)" : ""));
+		}
+	} else {
+	  console("no video devices found.\n");
+	}
+}
+
+
 - (int)processArgs:(int)argc argv:(const char *[])argv {
 
 	NSNumberFormatter *numberFormatter = [[NSNumberFormatter alloc] init];
@@ -131,87 +211,24 @@ NSArray *RECORDING_FORMATS;
 	verbose("     video: %s\n",    [recordingFormat UTF8String]);
 	verbose("     audio: %s\n",    [noAudio ? @"(none)": @"HQ AAC" UTF8String]);
 
-	return [self prepareCapture];
-}
-
-
-+ (void)printHelp: (NSString *)commandName {
-
-	printf("VideoSnap (%s)\n\n", [VERSION UTF8String]);
-
-	printf("  Record video and audio from a capture device\n\n");
-
-	printf("  See the argument list below for all available options.\n");
-	printf("  By default videosnap will capture and encode using the\n");
-	printf("  H.264(SD480)/AAC format to 'movie.mov'. If you do not\n");
-	printf("  specify a duration, capturing will continue until you\n");
-	printf("  interrupt with CTRL+c.\n");
-
-	printf("\n    usage: %s [options] [file ...]", [commandName UTF8String]);
-	printf("\n  example: %s -t 5.75 -d 'Built-in iSight' -f 'HD720' my_movie.mov\n\n", [commandName UTF8String]);
-
-	printf("  -h          Show help\n");
-	printf("  -l          List attached capture devices\n");
-	printf("  -t x.xx     Set duration of video (in seconds)\n");
-	printf("  -w x.xx     Set delay before capturing starts (in seconds) \n");
-	printf("  -d device   Set the capture device by name\n");
-	printf("  --no-audio  Disable audio capturing\n");
-  printf("  -v          Turn ON verbose mode (OFF by default)\n");
-	printf("  -s          Turn ON silent mode (OFF by default)\n");
-	printf("  -f          Set the H.264 video format\n");
-
-	for (id videoSize in RECORDING_FORMATS) {
-		printf("                %s%s\n", [videoSize UTF8String], [(videoSize == DEFAULT_RECORDING_FORMAT) ? @" (default)" : @"" UTF8String]);
-	}
-	printf("\n");
-}
-
-
-+ (NSArray *)videoDevices {
-	NSMutableArray *devices = [[NSMutableArray alloc] init];
-	[devices addObjectsFromArray:[AVCaptureDevice devicesWithMediaType:AVMediaTypeVideo]];
-	[devices addObjectsFromArray:[AVCaptureDevice devicesWithMediaType:AVMediaTypeMuxed]];
-
-	for (AVCaptureDevice *thisDevice in devices) {
-		if([thisDevice isConnected] == NO) {
-			[devices removeObject:thisDevice];
-		}
-	}
-
-	return devices;
-}
-
-
-+ (AVCaptureDevice *)defaultDevice {
-	return [[self videoDevices] firstObject];
-}
-
-
-+ (AVCaptureDevice *)deviceNamed:(NSString *)name {
-	AVCaptureDevice *device = nil;
-	NSArray *devices = [VideoSnap videoDevices];
-	for (AVCaptureDevice *thisDevice in devices) {
-		if ([name isEqualToString:[thisDevice description]]) {
-			device = thisDevice;
-		}
-	}
-
-	return device;
-}
-
-
--(void)printDeviceList {
-	unsigned long deviceCount = [[VideoSnap videoDevices] count];
-
-	if (deviceCount > 0) {
-		printf("Found %li connected video device%s:\n", deviceCount, (deviceCount > 1) ? "s" : "");
-
-		for (AVCaptureDevice *thisDevice in [VideoSnap videoDevices]) {
-			printf("* %s%s\n", [[thisDevice localizedName] UTF8String], (([VideoSnap defaultDevice] == thisDevice) ? " (default)" : ""));
-		}
+	if([self startCapture]) {
+		return 0;
 	} else {
-	  console("no video devices found.\n");
+		return 1;
 	}
+}
+
+
+
+- (Boolean)startCapture {
+
+	if ([self prepareCapture]) {
+		//[captureMovieFileOutput recordToOutputFileURL: fileURL, delegate: self];
+		[runLoop run];
+		return YES;
+	}
+
+	return NO;
 }
 
 
@@ -310,10 +327,7 @@ NSArray *RECORDING_FORMATS;
 
 	//----- START THE CAPTURE SESSION RUNNING -----
 	[captureSession startRunning];
-	[movieFileOutput startRecordingToOutputFileURL:fileURL recordingDelegate: self];
-	[self startCapture];
-
-
+	//[movieFileOutput startRecordingToOutputFileURL:fileURL recordingDelegate: self];
 
 
 //	NSError *nserror;
@@ -366,6 +380,11 @@ NSArray *RECORDING_FORMATS;
 	return success;
 }
 
+
+
+- (void)stopCapture {
+	//	[captureMovieFileOutput recordToOutputFileURL:nil];
+}
 
 - (void)sleep:(double)sleepSeconds {
 //	verbose("(delaying for %.2lf seconds)\n", sleepSeconds);
@@ -480,17 +499,6 @@ NSArray *RECORDING_FORMATS;
 //	}
 //}
 
-
-- (void)startCapture {
-
-	//[captureMovieFileOutput recordToOutputFileURL: fileURL, delegate: self];
-	[runLoop run];
-}
-
-
-- (void)stopCapture {
-//	[captureMovieFileOutput recordToOutputFileURL:nil];
-}
 
 
 //- (void)captureOutput:(QTCaptureFileOutput *)captureOutput

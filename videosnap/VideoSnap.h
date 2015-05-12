@@ -93,9 +93,9 @@
 -(Boolean)prepareCapture;
 
 /**
- * Starts capturing to the file path
+ * Starts capturing to the file path, return YES if started successfully
  */
--(void)startCapture;
+-(Boolean)startCapture;
 
 /**
  * Stops the capture and writes to the output file
