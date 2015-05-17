@@ -16,7 +16,7 @@
 #define verbose(...) if(isVerbose) { fprintf(stdout, __VA_ARGS__); }
 
 // VideoSnap
-@interface VideoSnap : NSObject {
+@interface VideoSnap : NSObject <AVCaptureFileOutputRecordingDelegate> {
 	Boolean   noAudio;
 	Boolean   isVerbose;
 	Boolean   isSilent;
@@ -93,32 +93,11 @@
 -(Boolean)prepareCapture;
 
 /**
- * Starts capturing to the file path, return YES if started successfully
- */
--(Boolean)startCapture;
-
-/**
- * Stops the capture and writes to the output file
- */
--(void)stopCapture;
-
-/**
- * Stops capture session and closes devices
- */
--(void)finishCapture;
-
-/**
- * Sleeps for a number of seconds
- */
--(void)sleep:(double)sleepSeconds;
-
-
-/**
  * Adds a video device to the capture session returns YES if successful
  *
  * @return Boolean
  */
--(Boolean)addVideoDevice:(AVCaptureDevice *)videoDevice;
+-(Boolean)addVideoDevice;
 
 /**
  * Adds an audio device to the capture session, uses the audio from videoDevice
@@ -126,11 +105,33 @@
  *
  * @return Boolean
  */
--(Boolean)addAudioDevice:(AVCaptureDevice *)videoDevice;
+-(Boolean)addAudioDevice;
 
 /**
  * Sets compression video/audio options on the output file
  */
 -(void)setCompressionOptions:(NSString *)videoCompression audioCompression:(NSString *)audioCompression;
+
+/**
+ * Starts capture session recording, returns YES if started successfully
+ */
+-(Boolean)startCapture;
+
+/**
+ * Pauses execution for a number of seconds
+ */
+-(void)sleep:(double)sleepSeconds;
+
+
+/**
+ * AVCaptureFileOutputRecordingDelegate methods
+ */
+- (void)captureOutput:(AVCaptureFileOutput *)captureOutput didStartRecordingToOutputFileAtURL:(NSURL *)outputFileURL fromConnections:(NSArray *)connections;
+- (void)captureOutput:(AVCaptureFileOutput *)captureOutput didFinishRecordingToOutputFileAtURL:(NSURL *)outputFileURL fromConnections:(NSArray *)connections error:(NSError *)error;
+
+/**
+ * Stops the capture and writes to the output file
+ */
+-(void)stopCapture;
 
 @end
