@@ -16,6 +16,11 @@ static NSString *const DEFAULT_RECORDING_FORMAT   = @"SD480";
 NSArray *RECORDING_FORMATS;
 
 
++ (instancetype)videoSnap {
+	return [[self alloc] init];
+}
+
+
 - (id)init {
 
 	RECORDING_FORMATS = [NSArray arrayWithObjects: @"120", @"240", @"SD480", @"HD720", nil];

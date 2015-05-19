@@ -30,5 +30,5 @@ int main(int argc, const char * argv[]) {
 
 	signal(SIGINT, &SIGINT_handler);
 
-	return [[[VideoSnap alloc] init] processArgs: argc argv:argv];
+	return [[VideoSnap videoSnap] processArgs: argc argv:argv];
 }

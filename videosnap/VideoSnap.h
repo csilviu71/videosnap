@@ -68,6 +68,10 @@
  */
 +(void)printHelp:(NSString *)commandName;
 
+/**
+ * Alloc and initialize a new instance of this class
+ */
++ (instancetype)videoSnap;
 
 
 // Instance methods
